@@ -4,8 +4,8 @@ import time
 GPIO.setmode(GPIO.BCM)
 
 pwm1 = 13
-p1 = 18
-p2 = 17
+p2 = 18
+p1 = 17
 
 pwm2 = 12
 p3 = 27
@@ -36,21 +36,22 @@ class Motor:
 def run():
     m1 = Motor(p1, p2, pwm1)
     m2 = Motor(p3, p4, pwm2)
-    speed = 40
+    speed = 28
+    period = 0.5
 
     FW = 1
     BW = -1
     ST = 0
 
     commands = [
-        (FW,FW, 1),
-        (BW,BW, 1),
-        (FW,BW, 1),
-        (FW,FW, 1),
-        (BW,FW, 1),
-        (FW,FW, 1),
-        (BW,FW, 1),
-        (FW,FW, 1),
+        (FW,FW, period),
+        (BW,BW, period),
+        (FW,BW, period),
+        (FW,FW, period),
+        (BW,FW, period),
+        (FW,FW, period),
+        (BW,FW, period),
+        (FW,FW, period),
     ]
 
     while True:
