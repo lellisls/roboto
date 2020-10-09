@@ -25,4 +25,8 @@ class Motor:
             p2_signal = GPIO.LOW if direction > 0 else GPIO.HIGH
         GPIO.output(self.p1, p1_signal)
         GPIO.output(self.p2, p2_signal)
+        if speed < 0:
+            speed = 0
+        elif speed > 100:
+            speed = 100
         self.pwm.start(speed)
