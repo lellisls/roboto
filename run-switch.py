@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
+"""
+robot_control_inputs.py
+www.bluetin.io
+"""
 
-from evdev_controller import get_gamepad, run_controller
+__author__ = "Mark Heywood"
+__version__ = "0.1.0"
+__license__ = "MIT"
 
+from inputs import get_gamepad
 from motor import Motor
 import RPi.GPIO as GPIO
 import logging
-import asyncio
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -31,17 +37,18 @@ ST = 0
 # -----------------------------------------------------------
 
 
-async def gamepad_update():
+def gamepad_update():
     # Code execution stops at the following line until gamepad event occurs.
-    event = await get_gamepad()
-
-    logging.info(f"{event.code}, {event.state}")
-    event_test = controller_input.get(event.code, None)
-    if event_test != None:
-        controller_input[event.code] = event.state
-        return_code = event.code
-    else:
-        return_code = None
+    events = get_gamepad()
+    return_code = None
+    for event in events:
+        logging.info(f"{event.code}, {event.state}")
+        event_test = controller_input.get(event.code, None)
+        if event_test != None:
+            controller_input[event.code] = event.state
+            return_code = event.code
+        else:
+            return_code = None
 
     return return_code
 
@@ -79,8 +86,8 @@ def drive_control_dpad():
 
 
 def drive_control_analog():
-    DY = -controller_input['ABS_Y']
-    DX = controller_input['ABS_X']
+    DY = -(min(controller_input['ABS_Y'], 32768) / 32768.0)
+    DX = (min(controller_input['ABS_X'], 32768) / 32768.0)
 
     if abs(DX) < 0.2:
         DX = 0
@@ -116,13 +123,14 @@ def drive_control_speed(control_code):
         SPEED = max(0, SPEED - 5)
     elif control_code == 'ABS_RZ' and controller_input['ABS_RZ'] > 0:
         SPEED = min(100, SPEED + 5)
+# -----------------------------------------------------------
 
 
-async def main():
-    """ Main entry point of the app """   
+def main():
+    """ Main entry point of the app """
     while 1:
         # Get next controller Input
-        control_code = await gamepad_update()
+        control_code = gamepad_update()
         if control_code:
             logging.debug(control_code)
 
@@ -134,11 +142,12 @@ async def main():
             drive_control_analog()
         elif control_code == 'ABS_Z' or control_code == 'ABS_RZ':
             drive_control_speed(control_code)
+# -----------------------------------------------------------
+
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """
-    loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(asyncio.gather(run_controller(), main()))
+        main()
     finally:
         GPIO.cleanup()
